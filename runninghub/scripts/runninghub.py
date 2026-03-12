@@ -603,11 +603,20 @@ def cmd_execute(args):
     result_url = result_item.get("url") or result_item.get("outputUrl")
     output_type_ext = result_item.get("outputType", "")
 
+    # Extract cost from usage data
+    usage = final.get("usage") or {}
+    consume_money = usage.get("consumeMoney")
+    task_cost_time = usage.get("taskCostTime")
+
     # Text results (for string output_type endpoints)
     if not result_url:
         text_result = result_item.get("text") or result_item.get("content") or result_item.get("output")
         if text_result:
             print(text_result)
+            if consume_money is not None:
+                print(f"COST:¥{consume_money}")
+            if task_cost_time and str(task_cost_time) != "0":
+                print(f"DURATION:{task_cost_time}s")
             return
         print(json.dumps({"error": "TASK_FAILED", "message": "No URL or text in results"}))
         sys.exit(1)
@@ -625,6 +634,11 @@ def cmd_execute(args):
     # OpenClaw parses MEDIA: tokens and will attach the file on
     # supported chat providers (WhatsApp, Telegram, WebChat, etc.).
     print(f"MEDIA:{full_path}")
+
+    if consume_money is not None:
+        print(f"COST:¥{consume_money}")
+    if task_cost_time and str(task_cost_time) != "0":
+        print(f"DURATION:{task_cost_time}s")
 
 
 def _guess_ext(output_type: str) -> str:
