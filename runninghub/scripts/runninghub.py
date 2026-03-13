@@ -384,14 +384,6 @@ def upload_file(api_key: str, file_path: str) -> str:
         sys.exit(1)
 
 
-def try_upload_file(api_key: str, file_path: str) -> str | None:
-    try:
-        return _upload_file(api_key, file_path)
-    except RuntimeError as exc:
-        print(f"Warning: result upload failed: {exc}", file=sys.stderr)
-        return None
-
-
 def image_to_data_uri(file_path: str) -> str:
     mime_type = mimetypes.guess_type(file_path)[0] or "image/png"
     with open(file_path, "rb") as f:
@@ -647,12 +639,6 @@ def cmd_execute(args):
     print(f"Downloading result to local file...", file=sys.stderr)
     full_path = download_file(result_url, output_path)
     print(f"OUTPUT_FILE:{full_path}")
-
-    if endpoint_def["output_type"] == "image":
-        uploaded_url = try_upload_file(api_key, full_path)
-        if uploaded_url:
-            print(f"OUTPUT_URL:{uploaded_url}")
-            print(f"![generated image]({uploaded_url})")
 
     if consume_money is not None:
         print(f"COST:¥{consume_money}")

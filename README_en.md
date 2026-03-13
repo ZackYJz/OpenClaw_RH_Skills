@@ -88,7 +88,7 @@ runninghub/
 | **Execute** | `--endpoint EP --prompt "..." -o /tmp/out` | Run with specific endpoint |
 | **Auto** | `--task TASK --prompt "..." -o /tmp/out` | Auto-select best endpoint |
 
-Image results are first downloaded locally, then re-uploaded through RunningHub's temporary media upload API. The script now emits `OUTPUT_FILE`, `OUTPUT_URL`, and a ready-to-render Markdown image line for direct display.
+Media results are downloaded to a local output path, which is intended for client integrations such as OpenClaw to send as files. Do not rely on Markdown image rendering for delivery.
 
 ## Updating Capabilities
 
