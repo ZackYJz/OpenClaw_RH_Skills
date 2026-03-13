@@ -88,6 +88,8 @@ runninghub/
 | **Execute** | `--endpoint EP --prompt "..." -o /tmp/out` | Run with specific endpoint |
 | **Auto** | `--task TASK --prompt "..." -o /tmp/out` | Auto-select best endpoint |
 
+Image results are first downloaded locally, then re-uploaded through RunningHub's temporary media upload API. The script now emits `OUTPUT_FILE`, `OUTPUT_URL`, and a ready-to-render Markdown image line for direct display.
+
 ## Updating Capabilities
 
 When RunningHub adds new API endpoints, regenerate the catalog:

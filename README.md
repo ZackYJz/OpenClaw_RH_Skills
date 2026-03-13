@@ -88,6 +88,8 @@ runninghub/
 | **执行** | `--endpoint EP --prompt "..." -o /tmp/out` | 使用指定端点执行 |
 | **自动** | `--task TASK --prompt "..." -o /tmp/out` | 自动选择最佳端点 |
 
+图片结果会先下载到本地，再自动上传到 RunningHub 临时文件接口；脚本除了输出 `OUTPUT_FILE`，还会输出可直接使用的 `OUTPUT_URL` 和 Markdown 图片语法，便于直接回显图片。
+
 ## 更新能力目录
 
 当 RunningHub 上线新的 API 端点时，重新生成目录：

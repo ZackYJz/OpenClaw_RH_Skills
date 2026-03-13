@@ -357,24 +357,39 @@ def cmd_info(endpoint: str):
 # Media handling
 # ---------------------------------------------------------------------------
 
-def upload_file(api_key: str, file_path: str) -> str:
+def _upload_file(api_key: str, file_path: str) -> str:
     url = f"{BASE_URL}{UPLOAD_ENDPOINT}"
     cmd = ["curl", "-s", "-S", "--fail-with-body", "-X", "POST", url,
            "-H", f"Authorization: Bearer {api_key}",
            "-F", f"file=@{file_path}", "--max-time", "120"]
     result = subprocess.run(cmd, capture_output=True, text=True)
     if result.returncode != 0:
-        print(f"Upload failed: {result.stderr}", file=sys.stderr)
-        sys.exit(1)
+        detail = result.stdout or result.stderr or "unknown upload error"
+        raise RuntimeError(f"Upload failed: {detail[:500]}")
     try:
         resp = json.loads(result.stdout)
     except json.JSONDecodeError:
-        print(f"Upload returned invalid JSON: {result.stdout[:500]}", file=sys.stderr)
+        raise RuntimeError(f"Upload returned invalid JSON: {result.stdout[:500]}")
+    download_url = resp.get("data", {}).get("download_url")
+    if resp.get("code") == 0 and download_url:
+        return download_url
+    raise RuntimeError(f"Upload error: {json.dumps(resp, ensure_ascii=False)[:500]}")
+
+
+def upload_file(api_key: str, file_path: str) -> str:
+    try:
+        return _upload_file(api_key, file_path)
+    except RuntimeError as exc:
+        print(str(exc), file=sys.stderr)
         sys.exit(1)
-    if resp.get("code") == 0:
-        return resp["data"]["download_url"]
-    print(f"Upload error: {resp}", file=sys.stderr)
-    sys.exit(1)
+
+
+def try_upload_file(api_key: str, file_path: str) -> str | None:
+    try:
+        return _upload_file(api_key, file_path)
+    except RuntimeError as exc:
+        print(f"Warning: result upload failed: {exc}", file=sys.stderr)
+        return None
 
 
 def image_to_data_uri(file_path: str) -> str:
@@ -632,6 +647,12 @@ def cmd_execute(args):
     print(f"Downloading result to local file...", file=sys.stderr)
     full_path = download_file(result_url, output_path)
     print(f"OUTPUT_FILE:{full_path}")
+
+    if endpoint_def["output_type"] == "image":
+        uploaded_url = try_upload_file(api_key, full_path)
+        if uploaded_url:
+            print(f"OUTPUT_URL:{uploaded_url}")
+            print(f"![generated image]({uploaded_url})")
 
     if consume_money is not None:
         print(f"COST:¥{consume_money}")
